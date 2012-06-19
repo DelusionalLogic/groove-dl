@@ -13,7 +13,7 @@ import threading
 if sys.version_info[1] >= 6:  import json
 else: import simplejson as json
 
-_useragent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.56 Safari/536.5"
+_useragent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0"
 _token = None
 
 URL = "grooveshark.com" #The base URL of Grooveshark
@@ -173,7 +173,7 @@ def markStreamKeyOver30Seconds(songID, songQueueID, streamServer, streamKey):
     return json.JSONDecoder().decode(gzip.GzipFile(fileobj=(StringIO.StringIO(conn.getresponse().read()))).read())["result"]
 
 #Mark the song as downloaded, hopefully stopping us from getting banned.
-def markSongDownloadedEx(streamServer, songID, streamKey):
+def markSongDownloadedEx(self, streamServer, songID, streamKey):
     p = {}
     p["parameters"] = {}
     p["parameters"]["streamServerID"] = streamServer
