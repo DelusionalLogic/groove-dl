@@ -68,7 +68,9 @@ class groovylib:
     def __init__(self):
         self.installHandlers()
         self.getSession()
+        self.doCrossdomainRequest()
         self.getToken()
+        self.getCountry()
         self.generateQueueID()
 
     def installHandlers(self):
@@ -105,6 +107,11 @@ class groovylib:
                 return session
         return
 
+    def doCrossdomainRequest(self):
+        req = urllib2.Request(self.URL + "/crossdomain.xml?20120312.08")
+        page = urllib2.urlopen(req)
+        page.read()
+
     def getSession(self):
         global session
 
@@ -115,6 +122,21 @@ class groovylib:
         self.parseMainPage(page.read())
         self.session = self.readSession()
         self.cj.save(self.COOKIEFILE)
+
+    def getCountry(self):
+        p = {}
+        p["header"] = {}
+        p["header"]["session"] = self.session
+        p["header"]["client"] = self.jsQueue["client"]
+        p["header"]["clientRevision"] = self.jsQueue["clientRevision"]
+        p["header"]["token"] = self.generateToken("getCountry", self.jsQueue["secret"])
+        p["header"]["privacy"] = self.h["privacy"]
+        p["header"]["uuid"] = self.h["uuid"]
+        p["method"] = "getCountry"
+        p["parameters"] = {}
+        page = urllib2.urlopen(self.createRequest(p, self.jsQueue))
+        self.h["country"] = json.JSONDecoder().decode(gzip.GzipFile(fileobj=(StringIO.StringIO(page.read()))).read())["result"]
+
 
     def createHeader(self, data, client, method = None):
         data["header"] = self.h

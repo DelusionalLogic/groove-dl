@@ -10,9 +10,9 @@ for item in s:
     if i == 10:
         break
 
-nh.download(s, raw_input("Please Select: "), reporter)
-
 def reporter(downloaded, size):
     status = r"%10d  [%3.2f%%]" % (downloaded, downloaded * 100. / size)
     status = status + chr(8)*(len(status)+1)
     print status
+
+nh.download(s, raw_input("Please Select: "), reporter)
