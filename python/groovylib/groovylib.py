@@ -14,7 +14,7 @@ import time
 import downloadHandler
 from urlgrabber.keepalive import HTTPHandler
 
-class groovylib:
+class grooveshark:
     '''Handles all the network stuff'''
 
     downloader = downloadHandler.downloadHandler()
