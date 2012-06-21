@@ -64,6 +64,7 @@ class grooveshark:
     userTrackingID = None
     queueID = None
     cj = None
+    tokenExpires = None
 
     def __init__(self):
         self.installHandlers()
@@ -160,19 +161,27 @@ class grooveshark:
         self.queueID = part1 + part2
 
     def generateToken(self, methodName, secret):
-        rnd = (''.join(random.choice(string.hexdigits) for x in range(6))).lower()
-        return rnd + hashlib.sha1('%s:%s:%s:%s' % (methodName, self.token, secret, rnd)).hexdigest()
+        if (self.tokenExpires and self.tokenExpires > time.time()):
+            rnd = (''.join(random.choice(string.hexdigits) for x in range(6))).lower()
+            return rnd + hashlib.sha1('%s:%s:%s:%s' % (methodName, self.token, secret, rnd)).hexdigest()
+        else:
+            self.getToken()
+            return self.generateToken(methodName, secret)
 
     def getToken(self):
-        global token
+        global token, tokenExpires
         p = {}
         p["parameters"] = {}
         p["parameters"]["secretKey"] = hashlib.md5(self.session).hexdigest()
         p["method"] = "getCommunicationToken"
         p = self.createHeader(p, self.htmlshark)
-        print p
         page = urllib2.urlopen(self.createRequest(p, self.htmlshark))
-        self.token = json.JSONDecoder().decode(gzip.GzipFile(fileobj=(StringIO.StringIO(page.read()))).read())["result"]
+        result = json.JSONDecoder().decode(gzip.GzipFile(fileobj=(StringIO.StringIO(page.read()))).read())["result"]
+        if result:
+            self.tokenExpires = time.time() + (60 * 25)
+            self.token = result
+        else:
+            raise KeyError("Couldn't get token")
 
     def getResultsFromSearch(self, query, what="Songs"):
         p = {}
@@ -262,7 +271,6 @@ class grooveshark:
 
         #markTimer = threading.Timer(30 + random.randint(0,5), self.markStreamKeyOver30Seconds, [search[choice]["SongID"], str(self.queueID), stream["ip"], stream["streamKey"]])
         #markTimer.start()
-        print stream
         data = {"streamKey":stream["streamKey"]}
         headers = {"Accept-Encoding":"gzip, deflate", "Host":stream["ip"], "User-Agent":self.USERAGENT}
         try:
